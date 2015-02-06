@@ -74,6 +74,12 @@ def theaterChaseRainbow(strip, wait_ms=50):
 			for i in range(0, strip.numPixels(), 3):
 				strip.setPixelColor(i+q, 0)
 
+def clear(strip):
+	"""Clear display (all black)."""
+	for i in range(strip.numPixels()):
+		strip.setPixelColor(i, 0)
+	strip.show()
+
 
 # Main program logic follows:
 if __name__ == '__main__':
@@ -99,3 +105,4 @@ if __name__ == '__main__':
 			theaterChaseRainbow(strip)
 	except KeyboardInterrupt:
 		pass
+	clear(strip)
