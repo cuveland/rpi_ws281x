@@ -1,7 +1,19 @@
 # Copyright (c) 2015 Jan de Cuveland <cmail@cuveland.de>
 
-env = Environment(LIBS='ws2811', LIBPATH='..')
+import os.path
+
+env = Environment()
+env.Append(LIBS='ws2811')
+env.Append(LIBPATH='..')
 env.Append(CFLAGS=['-std=c99', '-O2', '-Wall', '-Wextra'])
+
 env.ParseConfig("pkg-config --cflags --libs blib")
-env.Program('brx.c')
+brx = env.Program('brx.c')
+
+prefix = '/usr/local'
+sbin_dir = os.path.join(prefix, 'sbin')
+
+env.Alias('install', env.Install(sbin_dir, brx))
+# env.Alias('install', env.InstallAs('/etc/init.d/brx', 'brx.init'))
+
 Default('brx')

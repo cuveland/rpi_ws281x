@@ -1,0 +1,90 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          brx
+# Required-Start:    $syslog
+# Required-Stop:     $syslog
+# Should-Start:      
+# Default-Start:     2 3 4 5
+# Default-Stop:      
+# Short-Description: Blinkenlights udp protocol receiver for rpi_ws281x
+# Description:       brx is a program that receives pixel matrix data
+#                    in the Blinkenlights UDP protocol and displays
+#                    the images on a ws281x led matrix connected to
+#                    a Raspberry PI. This provides the services of
+#                    this application at system start.
+### END INIT INFO
+
+set -e
+
+# /etc/init.d/brx: start and stop the brx application
+
+DAEMON=/usr/local/sbin/brx
+BRX_OPTS=''
+BRX_PID_FILE=/var/run/brx.pid
+PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+brx_start() {
+    if start-stop-daemon --start --quiet --background \
+                         --pidfile $BRX_PID_FILE --make-pidfile \
+                         --exec $DAEMON
+    then
+        rc=0
+        sleep 1
+        if ! kill -0 $(cat $BRX_PID_FILE) >/dev/null 2>&1; then
+            log_failure_msg "brx application failed to start"
+            rc=1
+        fi
+    else
+        rc=1
+    fi
+    if [ $rc -eq 0 ]; then
+        log_end_msg 0
+    else
+        log_end_msg 1
+        rm -f $BRX_PID_FILE
+    fi
+}
+
+case "$1" in
+    start)
+        log_daemon_msg "Starting brx application" "brx"
+        if [ -s $BRX_PID_FILE ] && kill -0 $(cat $BRX_PID_FILE) >/dev/null 2>&1; then
+            log_progress_msg "apparently already running"
+            log_end_msg 0
+            exit 0
+        fi
+        brx_start
+        ;;
+    stop)
+        log_daemon_msg "Stopping brx application" "brx"
+        start-stop-daemon --stop --quiet --oknodo --pidfile $BRX_PID_FILE
+        log_end_msg $?
+        rm -f $BRX_PID_FILE
+        ;;
+    restart)
+        set +e
+        log_daemon_msg "Restarting brx application" "brx"
+        if [ -s $BRX_PID_FILE ] && kill -0 $(cat $BRX_PID_FILE) >/dev/null 2>&1; then
+            start-stop-daemon --stop --quiet --oknodo --pidfile $BRX_PID_FILE || true
+            sleep 1
+        else
+            log_warning_msg "brx application not running, attempting to start."
+            rm -f $BRX_PID_FILE
+        fi
+        brx_start
+        ;;
+    status)
+        status_of_proc -p $BRX_PID_FILE "$DAEMON" brx
+        exit $? # notreached due to set -e
+        ;;
+    *)
+        echo "Usage: /etc/init.d/brx {start|stop|restart|status}"
+        exit 1
+esac
+
+exit 0
