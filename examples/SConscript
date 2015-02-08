@@ -1,0 +1,7 @@
+# Copyright (c) 2015 Jan de Cuveland <cmail@cuveland.de>
+
+env = Environment(LIBS='ws2811', LIBPATH='..')
+env.Append(CFLAGS=['-std=c99', '-O2', '-Wall', '-Wextra'])
+env.ParseConfig("pkg-config --cflags --libs blib")
+env.Program('brx.c')
+Default('brx')

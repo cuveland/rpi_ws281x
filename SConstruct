@@ -63,5 +63,5 @@ for platform, tool, flags in platforms:
 Help(opts.GenerateHelpText(clean_envs))
 
 Export(['clean_envs'])
-SConscript('SConscript');
+SConscript(['SConscript', 'examples/SConscript']);
 
